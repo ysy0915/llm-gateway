@@ -1,0 +1,71 @@
+# llm-gateway Standalone 模式配置
+# 不依赖 Nacos / MySQL / Redis / RabbitMQ / Neo4j / Milvus
+# 只需配置 LLM API Key 即可启动
+#
+# 启动方式：
+#   java -jar llm-gateway.jar --spring.profiles.active=standalone
+#
+# 环境变量：
+#   DEEPSEEK_API_KEY=sk-xxx
+#   QWEN_API_KEY=sk-xxx
+#   DOUBAO_API_KEY=xxx
+
+server:
+  port: ${SERVER_PORT:9095}
+
+spring:
+  application:
+    name: llm-gateway
+  config:
+    # 与 local 共享的基础配置（LLM 网关 / Resilience4j / Actuator / Logging / gRPC）
+    import:
+      - classpath:application-common.yml
+  autoconfigure:
+    # 排除不需要的自动配置（无 MySQL/Redis/RabbitMQ/Neo4j）
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration
+      - org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+
+# RAG / 知识图谱 / 对话记忆 — 全部启用，纯内存实现（app.rag.backend=memory / app.knowledge-graph.backend=memory）
+# 模型管理面（DB CRUD）— 纯内存实现（app.llm.admin.memory=true），可用 /api/v1/llm/admin/providers 自助接入模型
+# 向量化需要外部 Embedding API：可复用 LLM API Key（DashScope）或单独配置 EMBEDDING_API_KEY
+app:
+  rag:
+    enabled: true
+    backend: memory
+    embedding:
+      provider: dashscope
+      mode: dashscope
+      base-url: https://dashscope.aliyuncs.com/api/v1
+      api-key: ${EMBEDDING_API_KEY:${QWEN_API_KEY:}}
+      model: text-embedding-v3
+      dimension: 1024
+  knowledge-graph:
+    enabled: true
+    backend: memory
+  llm:
+    admin:
+      memory: true
+  security:
+    enabled: false
+  # standalone 无 DB：关闭 MyBatis Mapper 扫描（模型管理面/知识库仓储由内存实现接管）
+  mapper-scan:
+    enabled: false
+
+# LLM 网关 / Resilience4j / Actuator / Logging 等基础配置见 application-common.yml
+# 仅增量开启策略包调试日志（公共部分已在 application-common.yml）
+logging:
+  level:
+    com.example.gateway.strategy: DEBUG

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example</groupId>
+        <artifactId>llm-gateway-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>llm-gateway-sdk</artifactId>
+    <packaging>jar</packaging>
+    <name>llm-gateway-sdk</name>
+    <description>llm-gateway 薄客户端 SDK：供其他项目引用，通过 HTTP 调用网关（无需引入服务端重依赖）</description>
+
+    <dependencies>
+        <!-- 依赖 models（DTO） -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>llm-gateway-models</artifactId>
+        </dependency>
+
+        <!-- 轻量 HTTP 客户端（Spring Web 的 RestTemplate 即可，不引入 webflux） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <!-- Jackson（DTO 序列化） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+    </dependencies>
+</project>

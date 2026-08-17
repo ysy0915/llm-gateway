@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example</groupId>
+        <artifactId>llm-gateway-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>llm-gateway-models</artifactId>
+    <packaging>jar</packaging>
+    <name>llm-gateway-models</name>
+    <description>llm-gateway 纯模型层：DTO / 枚举 / 异常（无 Spring 重依赖，供 core 与 sdk 共用）</description>
+
+    <dependencies>
+        <!-- Bean Validation（DTO 校验注解 @NotEmpty/@Valid） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- SpringDoc（DTO 上的 @Schema 注解） -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+    </dependencies>
+</project>

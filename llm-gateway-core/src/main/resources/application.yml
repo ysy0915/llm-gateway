@@ -1,0 +1,102 @@
+# llm-gateway 本地开发配置
+# 生产环境配置由 Nacos 提供: llm-gateway-prod.yml + chat-common-prod.yml
+# 与 standalone 共享的基础配置见 application-common.yml（import 顺序靠前，本文件可覆盖）
+server:
+  port: 9095
+
+spring:
+  application:
+    name: llm-gateway
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  config:
+    import:
+      - classpath:application-common.yml
+      - optional:nacos:chat-common-${spring.profiles.active}.yml?group=CHAT&refreshEnabled=true
+      - optional:nacos:llm-gateway-${spring.profiles.active}.yml?group=CHAT&refreshEnabled=true
+  cloud:
+    nacos:
+      server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      discovery:
+        enabled: ${NACOS_ENABLED:false}
+        ip: ${NACOS_IP:}
+      config:
+        enabled: ${NACOS_ENABLED:false}
+        file-extension: yml
+        group: CHAT
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:chat_system}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    # 数据库密码不设默认值：未配置 DB_PASSWORD 时留空，避免明文默认口令被扫描/误用
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 10000
+
+  neo4j:
+    uri: ${NEO4J_URI:bolt://127.0.0.1:7687}
+    authentication:
+      username: ${NEO4J_USERNAME:neo4j}
+      password: ${NEO4J_PASSWORD:}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+# RAG（本地开发默认关闭）
+app:
+  rag:
+    enabled: ${RAG_ENABLED:false}
+    embedding:
+      provider: dashscope
+      mode: ${EMBEDDING_MODE:dashscope}
+      base-url: ${EMBEDDING_BASE_URL:https://dashscope.aliyuncs.com/api/v1}
+      api-key: ${DASHSCOPE_API_KEY:}
+      model: ${EMBEDDING_MODEL:text-embedding-v3}
+      dimension: ${EMBEDDING_DIMENSION:1024}
+    milvus:
+      host: ${MILVUS_HOST:127.0.0.1}
+      port: ${MILVUS_PORT:19530}
+      dimension: 1024
+      collection-prefix: kb_
+    memory:
+      short-term-rounds: 5
+      long-term-top-k: 3
+      long-term-threshold: 0.5
+      redis-ttl-hours: 24
+      profile-ttl-days: 30
+      profile-provider: qwen
+      profile-model: qwen-plus
+    search:
+      top-k: 5
+      score-threshold: 0.3
+    context:
+      max-chars: 3000
+    # 语义重排（Rerank）—— 标准 RAG 精排层；provider=none 关闭
+    rerank:
+      enabled: ${RERANK_ENABLED:false}
+      provider: ${RERANK_PROVIDER:none}                 # none | jina | local
+      base-url: ${RERANK_BASE_URL:https://api.jina.ai/v1/rerank}
+      model: ${RERANK_MODEL:jina-reranker-v2-base-multilingual}
+      api-key: ${RERANK_API_KEY:}
+      timeout-seconds: 10
+    # 混合检索（Hybrid Search）—— 向量 + BM25 关键词 → RRF 融合
+    hybrid:
+      keyword-enabled: ${HYBRID_KEYWORD_ENABLED:false}   # 开启后需 MySQL ngram（建表自动幂等）
+      recall-factor: 3                                    # 召回放大系数
+      rrf-k: 60                                           # RRF 融合常数
+  knowledge-graph:
+    enabled: ${KNOWLEDGE_GRAPH_ENABLED:false}
+
+# LLM 网关 / Resilience4j / Actuator / Logging 等基础配置见 application-common.yml
